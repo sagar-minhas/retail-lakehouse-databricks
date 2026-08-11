@@ -1,32 +1,14 @@
 # Retail Lakehouse Project
 
-An end-to-end data engineering project built using Databricks, PySpark, Delta Lake, and Unity Catalog. The project follows a Medallion Architecture to incrementally ingest, clean, validate, transform, and publish retail order data.
+A Databricks-based data engineering project for processing retail order data through a Bronze, Silver, and Gold architecture.
 
 ## Architecture
 
-```text
-Source CSV Files
-       |
-       v
-  Auto Loader
-       |
-       v
-    BRONZE
-       |
-       | Cleaning & Validation
-       v
-    SILVER
-       |
-       | Business Transformations
-       v
-     GOLD
-       |
-       v
-Databricks Job
-   / Schedule
-```
+**Source Files → Auto Loader → Bronze → Silver → Gold**
 
-## Technology Stack
+The pipeline is scheduled through a Databricks Job so that the notebooks can run automatically.
+
+## Tech Stack
 
 - Databricks
 - PySpark
@@ -41,112 +23,70 @@ Databricks Job
 
 ```text
 retail-lakehouse-databricks/
-│
 ├── README.md
-│
 └── notebooks/
     ├── 01_bronze_ingestion
     ├── 02_silver_transformation
     └── 03_gold_analytics
 ```
 
-## Data Pipeline
+## Bronze
 
-### Bronze Layer
+The Bronze layer ingests the raw order files using Auto Loader.
 
-The Bronze layer ingests raw retail order files using Databricks Auto Loader.
+The data is kept close to the source with only the required ingestion metadata added. Auto Loader schema tracking and checkpoints are used to support incremental processing.
 
-Key capabilities:
+The Bronze data is stored as a Delta table.
 
-- Incremental file ingestion
-- Schema tracking
-- Streaming checkpoints
-- File-level metadata
-- Delta Lake storage
+## Silver
 
-The Bronze layer keeps the ingested data close to its original form so that source information can be retained and reprocessed when required.
+The Silver layer is where the raw data is cleaned and prepared for downstream use.
 
-### Silver Layer
+The processing includes:
 
-The Silver layer transforms Bronze data into clean and validated datasets.
-
-Processing includes:
-
-- Data cleansing
-- Standardization of source values
-- Data quality validation
+- Cleaning and standardizing source values
+- Data quality checks
 - Deduplication
-- Quarantine handling for invalid records
+- Handling invalid records through quarantine
+- Writing the cleaned data to Delta tables
 
-The resulting datasets are stored as Delta tables.
+## Gold
 
-### Gold Layer
+The Gold layer contains the business-ready data produced from the validated Silver data.
 
-The Gold layer contains business-ready datasets derived from the validated Silver data.
+The current transformations include aggregations used for retail analytics, such as sales, customer, product, and city-level metrics.
 
-The layer supports analytical use cases and business KPIs including aggregations around:
+## Unity Catalog
 
-- Sales
-- Customers
-- Products
-- Cities
-
-## Data Organization
-
-The project uses Unity Catalog to organize the lakehouse:
+The lakehouse is organized in Unity Catalog using separate schemas for each layer:
 
 ```text
 retail_lakehouse
 ├── bronze
-│   └── orders_bronze
 ├── silver
-│   └── curated tables
 └── gold
-    └── business-ready tables
 ```
 
-## Orchestration
+## Scheduling
 
-The pipeline is automated using a Databricks Job with scheduling.
+The pipeline is scheduled using a Databricks Job. The job runs the processing notebooks automatically instead of requiring them to be started manually.
 
-The workflow executes the processing notebooks automatically instead of relying on manual notebook execution.
+## GitHub
 
-## Version Control
+The project is connected to GitHub through Databricks Git folders.
 
-The project is integrated with GitHub using Databricks Git folders.
+Changes are developed using feature branches and merged into `main` through pull requests.
 
-Development follows a feature-branch and pull-request workflow:
-
-```text
-main
-  |
-  +-- feature/<change>
-          |
-        Commit
-          |
-         Push
-          |
-    Pull Request
-          |
-        Review
-          |
-        Merge
-          |
-         main
-```
-
-This provides version history, controlled development, and code review before changes are merged into the main branch.
-
-## Key Engineering Concepts
+## What This Project Covers
 
 - Medallion Architecture
-- Incremental data ingestion
-- Auto Loader
-- Schema tracking and evolution
+- Incremental ingestion with Auto Loader
+- Schema tracking
 - Streaming checkpoints
 - Delta Lake
+- Data cleansing and standardization
 - Data quality and quarantine handling
 - Deduplication
 - Unity Catalog
-- Databricks Jobs and scheduling
-- Git-based development and pull requests
+- Databricks Job scheduling
+- Git and GitHub workflow
